@@ -1,195 +1,150 @@
 <?php
 session_start();
 include("config/connection.php");
+include("includes/header.php");
 
-if (!isset($_SESSION['user'])) {
-    header("Location: login.php");
-    exit();
+
+if (isset($_POST['like'])) {
+
+    if (!isset($_SESSION['user_id'])) {
+        echo "<script>alert('Please login first');</script>";
+    } else {
+
+        $news_id = intval($_POST['news_id']);
+        $user_id = $_SESSION['user_id'];
+
+
+        $check = mysqli_query($conn, "SELECT * FROM likes 
+                                      WHERE news_id='$news_id' 
+                                      AND user_id='$user_id'");
+
+        if (mysqli_num_rows($check) == 0) {
+            mysqli_query($conn, "INSERT INTO likes (news_id, user_id) 
+                                 VALUES ('$news_id', '$user_id')");
+        }
+    }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NewsVerse</title>
-   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewsVerse</title>
+<style>
 
-    * {
-        margin: 0;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+* { margin: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+body { background-color: #f4f4f4; color: #333; }
+.container { max-width: 1200px; margin: 20px auto; padding: 0 20px; margin-top: 120px; }
+.news-box { background-color:white; padding: 20px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.news-content { display: flex; gap: 20px; align-items: stretch; }
+.news-content img { width: 280px; height: 100%; object-fit: cover; border-radius: 4px; }
+.news-text { flex: 1; }
+.news-text p { line-height: 1.6; }
+.read-more { display: inline-block; margin-top: 10px; color: #783595; font-weight: bold; text-decoration: none; }
+.read-more:hover { text-decoration: underline; }
 
-        box-sizing: border-box;
-        font-family: 'Roboto', sans-serif;
-    }
-
-    body {
-        background-color: #f4f4f4;
-        color: #333;
-    }
-
-    .nav-bar {
-        display: flex;
-        justify-content: flex-start;
-
-        padding: 10px 20px;
-    }
-
-    .nav-logo h2 {
-        color: #080808ff;
-    }
-
-    .nav-menu {
-        list-style: none;
-        display: flex;
-        padding: 10px 0;
-        justify-content: flex-start;
-        align-items: center;
-         background-color: #783595;
-         width: 100%;
-    
-    
-        
-
-
-
-    }
-    .nav-menu ul{
-        display: flex;
-        margin: auto;
-        gap: 20px;
-        align-items: flex-start;
-        flex-direction: column;
-        list-style: none;
-        
-        
-        
-
-    }
-
-    .nav-menu li {
-        margin-left: 20px;
-       
-        
-    }
-
-    .nav-menu a {
-       color: white;
-        text-decoration: none;
-        font-weight: bold;
-        font-family: serif;
-
-    }
-   .btn {
-    padding: 6px 14px;
-    color: #783595;
-    border-radius: 4px;
-    font-size: 14px;
+.like-btn {
+    margin-top:10px;
+    padding:6px 12px;
+    background:#783595;
+    color:white;
+    border:none;
+    border-radius:4px;
+    cursor:pointer;
 }
-
- .reg-btn {
-     padding: 6px 14px;
-    color: #783595;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-
-    
-    
-    
-       
-.user-info {
-    display: flex;
-    gap: 15px;
-    margin-left: auto;
-}
-
-
-    .container {
-        max-width: 1200px;
-        margin: 20px auto;
-        padding: 0 20px;
-    }
-
-    .news-box {
-        background-color:white;
-        padding: 20px;
-        margin-bottom: 20px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .logo-head { 
-        height: auto;
-        width: 300px;
-        border-radius: 5px;
-        padding: 25px;
-        justify-content: center;
-
-    }
-
-   </style>
+.like-btn:hover { opacity:0.9; }
+.like-count { margin-left:8px; font-weight:bold; }
+</style>
 </head>
 <body>
 
-<header>
-    <img src="images/News_logo.jpg" class="logo-head" alt="NewsVerse Logo">
-     
-
-    <nav class="nav-bar">
-        <a href="index.php" class="nav-logo"></a>
-        <ul class="nav-menu">
-    
-
-            <li><a href="World.php">World</a></li>
-            <li><a href="Politics.php">Politics</a></li>
-            <li><a href="Entertainment.php">Entertainment</a></li>
-            <li><a href="Sports.php">Sports</a></li>
-            <li><a href="Science.php">Science</a></li>
-            <li><a href="Travel.php">Travel</a></li>
-            <li><a href="Health.php">Health</a></li> 
-
-
-
-      
-        
-           <!-- <span><?php echo $_SESSION['user']; ?></span> -->
-           <div class="user-info">
-    <li><a href="logout.php" class="btn">Log out</a></li>
-    <li><a href="Register.php" class="reg-btn">Sign in</a></li>
-</div>
-
-</ul>
-
-       
-    </nav>
-   
-</header>
-
 <main class="container">
-    <h2>Latest News</h2>
+<?php
+if (isset($_GET['id'])) {
 
-    <?php
-    $query = "SELECT * FROM news ORDER BY id DESC";
+    $id = intval($_GET['id']);
+    $query = "SELECT * FROM news WHERE id = $id";
     $result = mysqli_query($conn, $query);
 
     if (mysqli_num_rows($result) > 0) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            ?>
-            <div class="news-box">
-                <h3><?php echo $row['title']; ?></h3>
-                <p><?php echo $row['content']; ?></p>
-                <img src="uploads/<?php echo $row['image']; ?>" width="300">
-            </div>
-            <?php
-        }
+        $row = mysqli_fetch_assoc($result);
+
+        $count_query = mysqli_query($conn,
+            "SELECT COUNT(*) as total FROM likes WHERE news_id='$id'");
+        $count = mysqli_fetch_assoc($count_query);
+        ?>
+
+        <div class="news-box">
+            <h2><?php echo $row['title']; ?></h2>
+
+            <img src="uploads/<?php echo $row['image']; ?>"
+                 style="width:100%; max-height:450px; object-fit:cover; border-radius:6px; margin-bottom:15px;">
+
+            <p style="line-height:1.8;">
+                <?php echo nl2br($row['content']); ?>
+            </p>
+
+            <form method="POST">
+                <input type="hidden" name="news_id" value="<?php echo $id; ?>">
+                <button type="submit" name="like" class="like-btn">❤️ Like</button>
+                <span class="like-count"><?php echo $count['total']; ?> Likes</span>
+            </form>
+
+            <a href="index.php" class="read-more">Back to news</a>
+        </div>
+
+        <?php
     } else {
-        echo "<div class='news-box'><p>No news available yet.</p></div>";
+        echo "<p>News not found.</p>";
     }
-    ?>
+
+} else {
+?>
+<h2>Latest News</h2>
+<?php
+$query = "SELECT * FROM news ORDER BY id DESC";
+$result = mysqli_query($conn, $query);
+
+if (mysqli_num_rows($result) > 0) {
+    while ($row = mysqli_fetch_assoc($result)) {
+
+        $news_id = $row['id'];
+
+  
+        $count_query = mysqli_query($conn,
+            "SELECT COUNT(*) as total FROM likes WHERE news_id='$news_id'");
+        $count = mysqli_fetch_assoc($count_query);
+?>
+        <div class="news-box">
+            <h3><?php echo $row['title']; ?></h3>
+            <div class="news-content">
+                <img src="uploads/<?php echo $row['image']; ?>" alt="News image">
+                <div class="news-text">
+                    <p><?php echo substr($row['content'], 0, 250); ?>...</p>
+                    <a href="index.php?id=<?php echo $news_id; ?>" class="read-more">Read more</a>
+
+                  
+                    <form method="POST">
+                        <input type="hidden" name="news_id" value="<?php echo $news_id; ?>">
+                        <button type="submit" name="like" class="like-btn">❤️ Like</button>
+                        <span class="like-count"><?php echo $count['total']; ?> Likes</span>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+<?php
+    }
+} else {
+    echo "<p>No news available.</p>";
+}
+}
+?>
 </main>
 
+<?php include("includes/footer.php"); ?>
 
 </body>
 </html>
